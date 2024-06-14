@@ -11,6 +11,7 @@
 #
 #   * Specify SKYPILOT_NAMESPACE env var to override the default namespace where the service account is created.
 #   * Specify SKYPILOT_SA_NAME env var to override the default service account name.
+#   * Specify INGRESS_NAMESPACE env var to override the default ingress-nginx namespace.
 #   * Specify SKIP_SA_CREATION=1 to skip creating the service account and use an existing one
 #
 # Usage:
@@ -29,9 +30,11 @@ set -eu -o pipefail
 # use default.
 SKYPILOT_SA=${SKYPILOT_SA_NAME:-sky-sa}
 NAMESPACE=${SKYPILOT_NAMESPACE:-default}
+INGRESS_NAMESPACE=${INGRESS_NAMESPACE:-ingress-nginx}
 
 echo "Service account: ${SKYPILOT_SA}"
 echo "Namespace: ${NAMESPACE}"
+echo "Ingress Namespace: ${INGRESS_NAMESPACE}"
 
 # Set OS specific values.
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
@@ -174,8 +177,8 @@ roleRef:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: ${SKYPILOT_SA}-role-ingress-nginx
-  namespace: ingress-nginx  # Do not change this namespace
+  name: ${SKYPILOT_SA}-role-${INGRESS_NAMESPACE}
+  namespace: ${INGRESS_NAMESPACE}  # Do not change this namespace
   labels:
     parent: skypilot
 rules:
@@ -190,8 +193,8 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: ${SKYPILOT_SA}-rolebinding-ingress-nginx
-  namespace: ingress-nginx  # Do not change this namespace
+  name: ${SKYPILOT_SA}-rolebinding-${INGRESS_NAMESPACE}
+  namespace: ${INGRESS_NAMESPACE}  # Do not change this namespace
   labels:
     parent: skypilot
 subjects:
@@ -200,7 +203,7 @@ subjects:
     namespace: ${NAMESPACE}
 roleRef:
   kind: Role
-  name: ${SKYPILOT_SA}-role-ingress-nginx  # Use the same name as the role at line 119
+  name: ${SKYPILOT_SA}-role-${INGRESS_NAMESPACE}  # Use the same name as the role at line 119
   apiGroup: rbac.authorization.k8s.io
 EOF
 fi
